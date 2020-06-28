@@ -16,16 +16,37 @@ void MinefieldPlugin::onLoad()
 	gameWrapper->HookEventWithCaller<ActorWrapper>("Function TAGame.VehiclePickup_Boost_TA.Pickup", std::bind(&MinefieldPlugin::OnBoostPickUp, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
+struct TheArgStruct
+{
+	uintptr_t Receiver;
+	uintptr_t Victim;
+	uintptr_t Event;
+};
+
 void MinefieldPlugin::OnBoostPickUp(ActorWrapper caller, void* params, std::string funcName){
+	cvarManager->log(funcName);
+
+	auto tArgs = (TheArgStruct*)params;
+
+	auto victim = CarWrapper(tArgs->Victim);
+	auto receiver = CarWrapper(tArgs->Receiver);
+	auto event = BoostPickupWrapper(tArgs->Event);
+
+	if (receiver.IsNull()) {
+		cvarManager->log("null receiver");
+		return;
+	}
 
 	Vector* values;
 	values = GetBumpValues();
 
-	/* NOT WORKING, GAME CRASHES
-	CarWrapper car = CarWrapper(reinterpret_cast<uintptr_t>(params));
-	car.SetAngularVelocity(values[0], 0);
-	car.AddVelocity(values[1]);		
-	*/
+	if (receiver.IsNull()) {
+		cvarManager->log("null car");
+		return;
+	}
+
+	receiver.SetAngularVelocity(values[0], 0);
+	receiver.AddVelocity(values[1]);		
 }
 
 
